@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Salva los Alimentos Mejorado</title>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial;background:linear-gradient(#87ceeb,#dff6ff)}
+#game{position:relative;width:100vw;height:100vh;overflow:hidden}
+#ui{position:absolute;top:10px;left:10px;z-index:10;font-weight:bold}
+#basket{position:absolute;bottom:20px;font-size:70px}
+.food{position:absolute;font-size:45px}
+#pauseBtn{position:absolute;top:10px;right:10px;z-index:20;padding:10px}
+#overlay,#start{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;flex-direction:column;background:rgba(0,0,0,.6);color:#fff;z-index:30}
+#overlay{display:none}
+</style>
+</head><body>
+<div id="game">
+<div id="ui"><div id="score">Puntos: 0</div><div id="time">Tiempo: 60</div></div>
+<button id="pauseBtn">⏸ Pausa</button>
+<div id="basket">🧺</div>
+<div id="start"><h1>Salva los Alimentos</h1><button onclick="startGame()">Jugar</button></div>
+<div id="overlay"><h1>PAUSA</h1></div>
+</div>
+<script>
+const game=document.getElementById('game'); const basket=document.getElementById('basket');
+let running=false,paused=false,score=0,time=60,bx=window.innerWidth/2;
+let foods=[]; let spawnId=null,timerId=null;
+const emojis=['🍎','🍌','🍞','🥕','🍓'];
+basket.style.left=bx+'px';
+document.addEventListener('mousemove',e=>{bx=e.clientX-40; if(bx<0)bx=0; if(bx>window.innerWidth-80)bx=window.innerWidth-80; basket.style.left=bx+'px';});
+function startGame(){document.getElementById('start').style.display='none'; running=true; spawnId=setInterval(spawnFood,800); timerId=setInterval(()=>{ if(paused) return; time--; document.getElementById('time').textContent='Tiempo: '+time; if(time<=0) endGame(); },1000);} 
+function spawnFood(){ if(!running||paused) return; let d=document.createElement('div'); d.className='food'; d.textContent=emojis[Math.floor(Math.random()*emojis.length)]; let obj={el:d,x:Math.random()*(window.innerWidth-50),y:-50,s:2+Math.random()*3}; d.style.left=obj.x+'px'; game.appendChild(d); foods.push(obj);} 
+function loop(){ if(running && !paused){ for(let i=foods.length-1;i>=0;i--){ let f=foods[i]; f.y+=f.s; f.el.style.top=f.y+'px'; let br=basket.getBoundingClientRect(), fr=f.el.getBoundingClientRect(); if(fr.bottom>=br.top&&fr.left<br.right&&fr.right>br.left){ score+=10; document.getElementById('score').textContent='Puntos: '+score; f.el.remove(); foods.splice(i,1); continue;} if(f.y>window.innerHeight){ f.el.remove(); foods.splice(i,1);} } } requestAnimationFrame(loop);} requestAnimationFrame(loop);
+function endGame(){running=false; clearInterval(spawnId); clearInterval(timerId); alert('Puntuación: '+score); location.reload();}
+document.getElementById('pauseBtn').onclick=()=>{ if(!running) return; paused=!paused; document.getElementById('overlay').style.display=paused?'flex':'none'; document.getElementById('pauseBtn').textContent=paused?'▶ Reanudar':'⏸ Pausa'; };
+</script></body></html>
